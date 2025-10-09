@@ -1,0 +1,126 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model AdminUser {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime @default(now())
+  UpdatedAt    DateTime @updatedAt
+
+  // Opposite relation fields for entities delivered by this admin
+  deliveries           DeliveryLog[]       @relation("DeliveredByLog")
+  assignmentsDelivered RemesaAssignment[]  @relation("DeliveredByAssignment")
+}
+
+model Student {
+  id        Int       @id @default(autoincrement())
+  name      String
+  grade     String
+  section   String
+  dni       String    @unique
+  birthDate DateTime?
+  notes     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  assignments  RemesaAssignment[]
+  // Opposite relation for DeliveryLog.student
+  deliveryLogs DeliveryLog[]
+}
+
+model Product {
+  id            Int          @id @default(autoincrement())
+  name          String
+  unit          String
+  category      String?
+  minStockAlert Int         @default(0)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  lots   ProductLot[]
+  items  RemesaItem[]
+}
+
+model ProductLot {
+  id         Int       @id @default(autoincrement())
+  productId  Int
+  quantity   Int       @default(0)
+  entryDate  DateTime
+  expiryDate DateTime?
+  lotCode    String?
+
+  product Product @relation(fields: [productId], references: [id])
+}
+
+model Remesa {
+  id          Int                @id @default(autoincrement())
+  name        String?
+  deliveryDate DateTime
+  status      RemesaStatus       @default(draft)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  items       RemesaItem[]
+  assignments RemesaAssignment[]
+  logs        DeliveryLog[]
+}
+
+model RemesaItem {
+  id                  Int      @id @default(autoincrement())
+  remesaId            Int
+  productId           Int
+  quantityPerStudent  Int?
+  totalQuantity       Int?
+
+  remesa  Remesa  @relation(fields: [remesaId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+}
+
+model RemesaAssignment {
+  id                 Int           @id @default(autoincrement())
+  remesaId           Int
+  studentId          Int
+  status             AssignmentStatus @default(pending)
+  deliveredByAdminId Int?
+  deliveredAt        DateTime?
+  notes              String?
+
+  remesa   Remesa     @relation(fields: [remesaId], references: [id])
+  student  Student    @relation(fields: [studentId], references: [id])
+  // Use distinct relation name to avoid clashing with DeliveryLog relation
+  deliveredByAdmin AdminUser? @relation("DeliveredByAssignment", fields: [deliveredByAdminId], references: [id])
+}
+
+model DeliveryLog {
+  id                 Int       @id @default(autoincrement())
+  remesaId           Int
+  studentId          Int
+  deliveredByAdminId Int?
+  deliveredAt        DateTime
+  notes              String?
+
+  remesa   Remesa    @relation(fields: [remesaId], references: [id])
+  student  Student   @relation(fields: [studentId], references: [id])
+  // Use distinct relation name from assignment relation
+  deliveredByAdmin AdminUser? @relation("DeliveredByLog", fields: [deliveredByAdminId], references: [id])
+}
+
+enum RemesaStatus {
+  draft
+  confirmed
+  cancelled
+}
+
+enum AssignmentStatus {
+  pending
+  delivered
+  cancelled
+}
