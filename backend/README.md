@@ -3,13 +3,18 @@
 ## Requisitos
 - Node.js 18+
 - MySQL 8+
+- Visual Studio Code
+- Github Desktop
+
 
 ## Configuración
 1. Copia `.env.example` a `.env` y configura credenciales.
 2. Instala dependencias:
    ```bash
+   cd frontend
    npm install
-   ```
+   cd backend 
+   npm install
    npm install mysql2 bcrypt dotenv
 3. Genera cliente Prisma y aplica migraciones (crearemos migraciones luego):
    
