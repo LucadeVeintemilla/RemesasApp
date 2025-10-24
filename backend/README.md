@@ -10,14 +10,19 @@
    ```bash
    npm install
    ```
+   npm install mysql2 bcrypt dotenv
 3. Genera cliente Prisma y aplica migraciones (crearemos migraciones luego):
-   ```bash
+   
+   En mySQL workbench: create database remesasdb;
+
+   ```bash remesasdb
    npx prisma generate
    # npx prisma migrate dev --name init
    ```
-4. Ejecuta en desarrollo:
+   #node insert-admin-mysql.js
+4. Ejecuta en desarrollo backend y frontend:
    ```bash
-   npm run dev
+   npm run dev o npm start
    ```
 
 ## Endpoints clave

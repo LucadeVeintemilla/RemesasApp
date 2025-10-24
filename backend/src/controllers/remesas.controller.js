@@ -37,14 +37,13 @@ export async function createRemesaController(req, res) {
 
 export async function confirmRemesaController(req, res) {
   const id = Number(req.params.id);
-  // Validate stock per product using FIFO by expiry
   const remesa = await prisma.remesa.findUnique({ where: { id }, include: { items: true, assignments: true } });
   if (!remesa) return res.status(404).json({ error: 'Not found' });
   if (remesa.status === 'confirmed') return res.status(400).json({ error: 'Ya confirmada' });
   const studentsCount = remesa.assignments.length;
 
   const shortages = [];
-  const lotConsumptions = []; // { lotId, take }
+  const lotConsumptions = []; 
 
   for (const item of remesa.items) {
     const required = item.quantityPerStudent ? item.quantityPerStudent * studentsCount : item.totalQuantity || 0;
