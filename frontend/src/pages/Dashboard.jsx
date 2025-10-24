@@ -24,7 +24,7 @@ function Dashboard() {
   const metrics = useMemo(() => {
     const totalStudents = students.length;
     const lowStock = products.filter(p => p.stockTotal <= (p.minStockAlert || 0)).length;
-    const pendingRemesas = remesas.filter(r => r.status === 'draft').length;
+    const pendingRemesas = remesas.filter(r => r.status === 'borrador').length;
     const nearExpiry = products.filter(p => p.nearExpiry).length;
     return { totalStudents, lowStock, pendingRemesas, nearExpiry };
   }, [students, products, remesas]);
@@ -40,7 +40,7 @@ function Dashboard() {
 
   const deliveriesByWeek = useMemo(() => {
     const map = new Map();
-    remesas.filter(r => r.status === 'confirmed').forEach(r => {
+    remesas.filter(r => r.status === 'confirmado').forEach(r => {
       const d = new Date(r.deliveryDate);
       const key = `${d.getFullYear()}-W${Math.ceil((((d - new Date(d.getFullYear(),0,1)) / 86400000) + new Date(d.getFullYear(),0,1).getDay()+1)/7)}`;
       map.set(key, (map.get(key) || 0) + 1);

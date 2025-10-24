@@ -228,10 +228,10 @@ export default function Remesas() {
                   <td className="px-3 py-2">{r.name || '-'}</td>
                   <td className="px-3 py-2">{new Date(r.deliveryDate).toLocaleDateString()}</td>
                   <td className="px-3 py-2">
-                    <span className={`px-2 py-1 text-xs rounded-full ${r.status === 'draft' ? 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300' : r.status === 'confirmed' ? 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300'}`}>{r.status}</span>
+                    <span className={`px-2 py-1 text-xs rounded-full ${r.status === 'borrador' ? 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300' : r.status === 'confirmado' ? 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300'}`}>{r.status}</span>
                   </td>
                   <td className="px-3 py-2 text-right">
-                    {r.status === 'draft' && <button onClick={() => confirmRemesa(r.id)} className="px-3 py-1 rounded-md bg-sky-500 hover:bg-sky-600 text-white">Confirmar</button>}
+                    {r.status === 'borrador' && <button onClick={() => confirmRemesa(r.id)} className="px-3 py-1 rounded-md bg-sky-500 hover:bg-sky-600 text-white">Confirmar</button>}
                   </td>
                 </tr>
               ))}

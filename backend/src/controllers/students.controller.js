@@ -28,7 +28,6 @@ export async function getStudentController(req, res) {
 export async function createStudentController(req, res) {
   const { nombre_completo, grado, seccion, dni, fecha_nacimiento, observaciones } = req.body || {};
   if (!nombre_completo || !grado || !seccion || !dni) return res.status(400).json({ error: 'Missing required fields' });
-  // Simple DNI format validation: 8 digits typical; adjust if needed
   if (!/^\d{8,12}$/.test(dni)) return res.status(400).json({ error: 'DNI formato inválido' });
   try {
     const student = await prisma.student.create({

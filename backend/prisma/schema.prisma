@@ -64,7 +64,7 @@ model Remesa {
   id          Int                @id @default(autoincrement())
   name        String?
   deliveryDate DateTime
-  status      RemesaStatus       @default(draft)
+  status      RemesaStatus       @default(borrador)
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
 
@@ -114,9 +114,9 @@ model DeliveryLog {
 }
 
 enum RemesaStatus {
-  draft
-  confirmed
-  cancelled
+  borrador
+  confirmado
+  cancelado
 }
 
 enum AssignmentStatus {

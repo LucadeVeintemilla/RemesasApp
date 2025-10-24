@@ -39,7 +39,7 @@ export async function confirmRemesaController(req, res) {
   const id = Number(req.params.id);
   const remesa = await prisma.remesa.findUnique({ where: { id }, include: { items: true, assignments: true } });
   if (!remesa) return res.status(404).json({ error: 'Not found' });
-  if (remesa.status === 'confirmed') return res.status(400).json({ error: 'Ya confirmada' });
+  if (remesa.status === 'confirmado') return res.status(400).json({ error: 'Ya confirmada' });
   const studentsCount = remesa.assignments.length;
 
   const shortages = [];
@@ -65,13 +65,12 @@ export async function confirmRemesaController(req, res) {
     return res.status(400).json({ error: 'Stock insuficiente', shortages });
   }
 
-  // Transaction: decrement lots and mark remesa confirmed
   await prisma.$transaction(async (tx) => {
     for (const c of lotConsumptions) {
       const lot = await tx.productLot.findUnique({ where: { id: c.lotId } });
       await tx.productLot.update({ where: { id: c.lotId }, data: { quantity: lot.quantity - c.take } });
     }
-    await tx.remesa.update({ where: { id }, data: { status: 'confirmed' } });
+    await tx.remesa.update({ where: { id }, data: { status: 'confirmado' } });
   });
 
   res.json({ ok: true });
@@ -79,7 +78,7 @@ export async function confirmRemesaController(req, res) {
 
 export async function cancelRemesaController(req, res) {
   const id = Number(req.params.id);
-  const remesa = await prisma.remesa.update({ where: { id }, data: { status: 'cancelled' } });
+  const remesa = await prisma.remesa.update({ where: { id }, data: { status: 'cancelado' } });
   res.json(remesa);
 }
 
@@ -89,7 +88,7 @@ export async function listPendingForDniController(req, res) {
   if (!student) return res.status(404).json({ error: 'Alumno no encontrado' });
   const now = new Date();
   const remesas = await prisma.remesaAssignment.findMany({
-    where: { studentId: student.id, status: 'pending', remesa: { deliveryDate: { lte: now }, status: 'confirmed' } },
+    where: { studentId: student.id, status: 'pending', remesa: { deliveryDate: { lte: now }, status: 'confirmado' } },
     include: { remesa: { include: { items: true } } },
   });
   res.json(remesas);

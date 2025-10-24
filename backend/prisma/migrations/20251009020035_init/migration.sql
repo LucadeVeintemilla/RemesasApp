@@ -57,7 +57,7 @@ CREATE TABLE `Remesa` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(191) NULL,
     `deliveryDate` DATETIME(3) NOT NULL,
-    `status` ENUM('draft', 'confirmed', 'cancelled') NOT NULL DEFAULT 'draft',
+    `status` ENUM('borrador', 'confirmado', 'cancelado') NOT NULL DEFAULT 'borrador',
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 

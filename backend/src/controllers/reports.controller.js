@@ -27,7 +27,7 @@ export async function remesasReportController(req, res) {
     },
     items: producto ? { some: { product: { name: { contains: String(producto), mode: 'insensitive' } } } } : undefined,
     assignments: alumno ? { some: { student: { name: { contains: String(alumno), mode: 'insensitive' } } } } : undefined,
-    status: 'confirmed',
+    status: 'confirmado',
   };
   const remesas = await prisma.remesa.findMany({ where, include: { items: { include: { product: true } }, assignments: { include: { student: true } } }, orderBy: { deliveryDate: 'asc' } });
   res.json(remesas);
