@@ -136,6 +136,7 @@ export default function Products() {
                   <input className="px-3 py-2 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900" placeholder="Unidad (ej. kg, unid)" value={form.unidad} onChange={(e) => setForm({ ...form, unidad: e.target.value })} />
                   <input className="px-3 py-2 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900" placeholder="Categoría" value={form.categoria} onChange={(e) => setForm({ ...form, categoria: e.target.value })} />
                 </div>
+                <div className="grid grid-cols-1 gap-3">Stock Bajo Alerta</div>
                 <input type="number" className="px-3 py-2 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900" placeholder="Alerta stock mínimo" value={form.min_stock_alert}
                        onChange={(e) => setForm({ ...form, min_stock_alert: Number(e.target.value) })} />
                 {error && <div className="text-rose-600 text-sm">{error}</div>}
@@ -160,12 +161,23 @@ export default function Products() {
             </div>
             <div className="p-4 space-y-4 flex-1 overflow-auto">
               <form onSubmit={createLot} className="grid grid-cols-2 gap-3">
+                {/** Cantidad */}
+                <div className="flex flex-col">
+                <label className="text-sm text-slate-500 dark:text-slate-400">Cantidad</label>
                 <input type="number" className="px-3 py-2 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900" placeholder="Cantidad" value={lotForm.cantidad}
                        onChange={(e) => setLotForm({ ...lotForm, cantidad: Number(e.target.value) })} />
+                </div>
+                <div className="flex flex-col"></div>
+                <div className="flex flex-col">
+                <label className="text-sm text-slate-500 dark:text-slate-400">Fecha ingreso</label>
                 <input type="date" className="px-3 py-2 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900" placeholder="Fecha ingreso" value={lotForm.fecha_ingreso}
                        onChange={(e) => setLotForm({ ...lotForm, fecha_ingreso: e.target.value })} />
+                </div>
+                <div className="flex flex-col">
+                <label className="text-sm text-slate-500 dark:text-slate-400">Fecha Vencimiento</label>
                 <input type="date" className="px-3 py-2 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900" placeholder="Fecha vencimiento" value={lotForm.fecha_vencimiento}
                        onChange={(e) => setLotForm({ ...lotForm, fecha_vencimiento: e.target.value })} />
+                </div>
                 <input className="px-3 py-2 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900" placeholder="Código lote" value={lotForm.codigo_lote}
                        onChange={(e) => setLotForm({ ...lotForm, codigo_lote: e.target.value })} />
                 {error && <div className="text-rose-600 text-sm col-span-2">{error}</div>}

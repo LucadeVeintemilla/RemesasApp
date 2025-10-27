@@ -9,11 +9,12 @@ export default function Delivery() {
   const [pendings, setPendings] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [includeFuture, setIncludeFuture] = useState(false);
 
   const search = async () => {
     setLoading(true); setError('');
     try {
-      const { data } = await api.get(`/api/remesas/pending/by-dni/${dni}`);
+      const { data } = await api.get(`/api/remesas/pending/by-dni/${dni}`, { params: { includeFuture } });
       setPendings(data || []);
     } catch (err) {
       setError(err.response?.data?.error || 'Error buscando remesas');
@@ -40,6 +41,10 @@ export default function Delivery() {
             <Search className="text-slate-400" size={18} />
             <input className="flex-1 outline-none bg-transparent text-lg" placeholder="Ingresa DNI del alumno" value={dni} onChange={(e) => setDni(e.target.value)} />
           </div>
+          <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+            <input type="checkbox" checked={includeFuture} onChange={(e) => setIncludeFuture(e.target.checked)} />
+            Incluir futuras
+          </label>
           <button onClick={search} disabled={!dni || loading} className="px-4 py-3 rounded-xl bg-brand-500 disabled:bg-slate-400 text-white font-medium shadow">
             {loading ? 'Buscando…' : 'Buscar'}
           </button>

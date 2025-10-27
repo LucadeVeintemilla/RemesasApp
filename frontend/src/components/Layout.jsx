@@ -2,6 +2,7 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useEffect, useState } from 'react';
 import { LayoutDashboard, Users, Package, ClipboardList, ClipboardCheck, FileBarChart, Settings, LogOut, Sun, Moon } from 'lucide-react';
+import logo from '../assets/logos.png';
 
 const nav = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -10,7 +11,6 @@ const nav = [
   { to: '/remesas', label: 'Remesas', icon: ClipboardList },
   { to: '/delivery', label: 'Entrega', icon: ClipboardCheck },
   { to: '/reports', label: 'Reportes', icon: FileBarChart },
-  { to: '/settings', label: 'Configuración', icon: Settings, disabled: true },
 ];
 
 export default function Layout() {
@@ -39,7 +39,7 @@ export default function Layout() {
     <div className="h-full bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 grid" style={{ gridTemplateColumns: collapsed ? '72px 1fr' : '260px 1fr' }}>
       <aside className="relative h-full border-r border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-950/60 backdrop-blur shadow-sm transition-all">
         <div className="p-4 flex items-center gap-2">
-          <div className="w-8 h-8 rounded bg-brand-500" />
+          <img src={logo} alt="Logo" className="w-8 h-8 rounded object-cover" />
           {!collapsed && <div className="font-semibold">Remesas Escolar</div>}
         </div>
         <nav className="px-2 space-y-1">

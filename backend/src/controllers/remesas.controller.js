@@ -7,8 +7,28 @@ function sortByExpiry(a, b) {
   return new Date(a.expiryDate) - new Date(b.expiryDate);
 }
 
-export async function listRemesasController(_req, res) {
-  const items = await prisma.remesa.findMany({ orderBy: { createdAt: 'desc' } });
+export async function listRemesasController(req, res) {
+  const { from, to, alumno, producto } = req.query || {};
+  const where = {};
+  if (from || to) {
+    where.deliveryDate = {};
+    if (from) where.deliveryDate.gte = new Date(from);
+    if (to) where.deliveryDate.lte = new Date(to);
+  }
+  if (alumno) {
+    where.assignments = { some: { student: { name: { contains: alumno } } } };
+  }
+  if (producto) {
+    where.items = { some: { product: { name: { contains: producto } } } };
+  }
+  const items = await prisma.remesa.findMany({
+    where,
+    orderBy: { deliveryDate: 'desc' },
+    include: {
+      items: { include: { product: true } },
+      assignments: { include: { student: true } },
+    },
+  });
   res.json(items);
 }
 
@@ -82,13 +102,37 @@ export async function cancelRemesaController(req, res) {
   res.json(remesa);
 }
 
+export async function updateRemesaController(req, res) {
+  const id = Number(req.params.id);
+  const { nombre_remesa, fecha_entrega } = req.body || {};
+  const remesa = await prisma.remesa.findUnique({ where: { id } });
+  if (!remesa) return res.status(404).json({ error: 'Not found' });
+  if (remesa.status !== 'borrador') return res.status(400).json({ error: 'Solo se puede editar una remesa en borrador' });
+  const data = {};
+  if (typeof nombre_remesa !== 'undefined') data.name = nombre_remesa || null;
+  if (typeof fecha_entrega !== 'undefined') {
+    const d = new Date(fecha_entrega);
+    if (isNaN(d.getTime())) return res.status(400).json({ error: 'fecha_entrega inválida' });
+    data.deliveryDate = d;
+  }
+  const updated = await prisma.remesa.update({ where: { id }, data });
+  res.json(updated);
+}
+
 export async function listPendingForDniController(req, res) {
-  const { dni } = req.params;
+  const dni = String(req.params.dni || '').trim();
   const student = await prisma.student.findUnique({ where: { dni } });
   if (!student) return res.status(404).json({ error: 'Alumno no encontrado' });
+  const includeFuture = String(req.query?.includeFuture || '').toLowerCase() === 'true';
   const now = new Date();
   const remesas = await prisma.remesaAssignment.findMany({
-    where: { studentId: student.id, status: 'pending', remesa: { deliveryDate: { lte: now }, status: 'confirmado' } },
+    where: {
+      studentId: student.id,
+      status: 'pending',
+      remesa: includeFuture
+        ? { status: 'confirmado' }
+        : { deliveryDate: { lte: now }, status: 'confirmado' },
+    },
     include: { remesa: { include: { items: true } } },
   });
   res.json(remesas);
@@ -96,7 +140,8 @@ export async function listPendingForDniController(req, res) {
 
 export async function markDeliveredController(req, res) {
   const id = Number(req.params.id);
-  const { dni, observaciones } = req.body || {};
+  const dni = String((req.body || {}).dni || '').trim();
+  const { observaciones } = req.body || {};
   const userId = req.user?.id;
   const assignment = await prisma.remesaAssignment.findFirst({ where: { remesaId: id, student: { dni }, status: 'pending' } });
   if (!assignment) return res.status(404).json({ error: 'Asignación no encontrada o ya entregada' });

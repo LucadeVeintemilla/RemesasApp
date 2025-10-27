@@ -6,6 +6,7 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, CartesianGrid, Tooltip } fro
 export default function Reports() {
   const [inventory, setInventory] = useState([]);
   const [filters, setFilters] = useState({ from: '', to: '', alumno: '', producto: '' });
+  const [statusFilter, setStatusFilter] = useState('all'); // all | delivered | pending
   const [remesas, setRemesas] = useState([]);
 
   const loadInventory = async () => {
@@ -13,18 +14,77 @@ export default function Reports() {
     setInventory(data || []);
   };
 
+  const exportPdf = async (type) => {
+    try {
+      const { data, headers } = await api.get('/api/reports/export/pdf', {
+        params: { type, t: Date.now() },
+        responseType: 'blob',
+      });
+      const blob = new Blob([data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const cd = headers['content-disposition'];
+      let filename = `reporte-${type}-${new Date().toISOString().slice(0,10)}.pdf`;
+      if (cd) {
+        const match = /filename\*=UTF-8''([^;]+)|filename="?([^";]+)"?/i.exec(cd);
+        const found = match?.[1] || match?.[2];
+        if (found) filename = decodeURIComponent(found);
+      }
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.error || 'No se pudo exportar PDF');
+    }
+  };
+
   const loadRemesas = async () => {
-    const { data } = await api.get('/api/reports/remesas', { params: filters });
+    const { data } = await api.get('/api/remesas', { params: filters });
     setRemesas(data || []);
   };
 
-  useEffect(() => { loadInventory(); }, []);
+  useEffect(() => { loadInventory(); loadRemesas(); }, []);
 
   const exportCsv = async (type) => {
-    const url = new URL('/api/reports/export/csv', api.defaults.baseURL);
-    url.searchParams.set('type', type);
-    window.open(url.toString(), '_blank');
+    try {
+      const { data, headers } = await api.get('/api/reports/export/csv', {
+        params: { type, t: Date.now() },
+        responseType: 'blob',
+      });
+      const blob = new Blob([data], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const cd = headers['content-disposition'];
+      let filename = `reporte-${type}-${new Date().toISOString().slice(0,10)}.csv`;
+      if (cd) {
+        const match = /filename\*=UTF-8''([^;]+)|filename="?([^";]+)"?/i.exec(cd);
+        const found = match?.[1] || match?.[2];
+        if (found) filename = decodeURIComponent(found);
+      }
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.error || 'No se pudo exportar CSV');
+    }
   };
+
+  const filteredRemesas = remesas.filter(r => {
+    if (statusFilter === 'all') return true;
+    const hasDelivered = (r.assignments || []).some(a => a.status === 'delivered');
+    const hasPending = (r.assignments || []).some(a => a.status === 'pending');
+    if (statusFilter === 'delivered') return hasDelivered;
+    if (statusFilter === 'pending') return hasPending;
+    return true;
+  });
 
   return (
     <div className="space-y-6">
@@ -48,9 +108,14 @@ export default function Reports() {
       <section className="bg-white dark:bg-slate-900 rounded-xl shadow-card p-4">
         <div className="flex items-center justify-between mb-2">
           <div className="font-medium flex items-center gap-2"><BarChart3 size={18} /> Inventario por lotes</div>
-          <button onClick={() => exportCsv('inventory')} className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700">
-            <Download size={16} /> CSV
-          </button>
+          <div className="flex items-center gap-2">
+            <button onClick={() => exportCsv('inventory')} className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700">
+              <Download size={16} /> CSV
+            </button>
+            <button onClick={() => exportPdf('inventory')} className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700">
+              <Download size={16} /> PDF
+            </button>
+          </div>
         </div>
 
         <div className="overflow-auto border rounded-lg border-slate-200 dark:border-slate-800">
@@ -85,17 +150,33 @@ export default function Reports() {
 
       {/* Remesas */}
       <section className="bg-white dark:bg-slate-900 rounded-xl shadow-card p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="font-medium">Remesas entregadas (filtros)</div>
-          <div className="flex items-center gap-2 text-slate-500"><Filter size={16} />
-            <input type="date" className="px-2 py-1.5 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900" value={filters.from} onChange={e => setFilters({ ...filters, from: e.target.value })} />
-            <input type="date" className="px-2 py-1.5 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900" value={filters.to} onChange={e => setFilters({ ...filters, to: e.target.value })} />
-            <input className="px-2 py-1.5 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900" placeholder="Alumno" value={filters.alumno} onChange={e => setFilters({ ...filters, alumno: e.target.value })} />
-            <input className="px-2 py-1.5 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900" placeholder="Producto" value={filters.producto} onChange={e => setFilters({ ...filters, producto: e.target.value })} />
-            <button onClick={loadRemesas} className="px-3 py-1.5 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700">Filtrar</button>
-            <button onClick={() => exportCsv('remesas')} className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700">
-              <Download size={16} /> CSV
-            </button>
+        <div className="mb-3">
+          <div className="flex items-center justify-between">
+            <div className="font-medium">Remesas (filtros)</div>
+            <div className="text-slate-500 flex items-center gap-2"><Filter size={16} /></div>
+          </div>
+          <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <input type="date" className="px-2 py-1.5 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900" value={filters.from} onChange={e => setFilters({ ...filters, from: e.target.value })} />
+              <input type="date" className="px-2 py-1.5 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900" value={filters.to} onChange={e => setFilters({ ...filters, to: e.target.value })} />
+              <input className="px-2 py-1.5 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900" placeholder="Alumno" value={filters.alumno} onChange={e => setFilters({ ...filters, alumno: e.target.value })} />
+                         <input className="px-2 py-1.5 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900" placeholder="Producto" value={filters.producto} onChange={e => setFilters({ ...filters, producto: e.target.value })} />
+
+            </div>
+            <div className="flex flex-wrap items-center gap-2 justify-start sm:justify-end">
+              <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="px-2 py-1.5 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+                <option value="all">Todos</option>
+                <option value="delivered">Entregados</option>
+                <option value="pending">Pendientes</option>
+              </select>
+              <button onClick={loadRemesas} className="px-3 py-1.5 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700">Filtrar</button>
+              <button onClick={() => exportCsv('remesas')} className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700">
+                <Download size={16} /> CSV
+              </button>
+              <button onClick={() => exportPdf('remesas')} className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700">
+                <Download size={16} /> PDF
+              </button>
+            </div>
           </div>
         </div>
 
@@ -112,12 +193,12 @@ export default function Reports() {
                   </tr>
                 </thead>
                 <tbody>
-                  {remesas.map(r => (
+                  {filteredRemesas.map(r => (
                     <tr key={r.id} className="border-t border-slate-100 dark:border-slate-800">
                       <td className="px-3 py-2">{r.id}</td>
                       <td className="px-3 py-2">{new Date(r.deliveryDate).toLocaleDateString()}</td>
                       <td className="px-3 py-2">{r.items.map(i => `${i.product.name}${i.quantityPerStudent ? ` x${i.quantityPerStudent}/alumno` : ` total ${i.totalQuantity}`}`).join(', ')}</td>
-                      <td className="px-3 py-2">{r.assignments.map(a => a.student.name).join(', ')}</td>
+                      <td className="px-3 py-2">{r.assignments.map(a => `${a.student.name}${a.status === 'delivered' ? ' (Entregado)' : ' (Pendiente)'}`).join(', ')}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -134,7 +215,7 @@ export default function Reports() {
                 }, []).sort((a,b)=>a.name.localeCompare(b.name))}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis dataKey="name" tick={{ fill: '#64748b' }} />
-                  <Tooltip />
+                  <Tooltip formatter={(v) => [v, 'Remesas']} />
                   <Bar dataKey="value" fill="#10b981" radius={[6,6,0,0]} />
                 </BarChart>
               </ResponsiveContainer>

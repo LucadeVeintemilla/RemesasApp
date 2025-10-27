@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, ShieldCheck } from 'lucide-react';
+import { Mail, Lock } from 'lucide-react';
+import logo from '../assets/logos.png';
 import { motion } from 'framer-motion';
 
 export default function Login() {
@@ -30,13 +31,11 @@ export default function Login() {
     <div className="min-h-screen bg-gradient-to-br from-brand-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 flex items-center justify-center px-4">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
         className="w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-card p-8">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-lg bg-brand-500 flex items-center justify-center text-white">
-            <ShieldCheck size={20} />
-          </div>
+        <div className="flex items-center gap-4 mb-6">
+          <img src={logo} alt="Logo" className="w-20 h-20 rounded-lg object-cover" />
           <div>
             <div className="text-xl font-semibold">Remesas Escolar</div>
-            <div className="text-slate-500 dark:text-slate-400 text-sm">Panel administrativo</div>
+            <div className="text-slate-500 dark:text-slate-400 text-sm">Institucion Educativa 15005</div>
           </div>
         </div>
 
@@ -49,7 +48,7 @@ export default function Login() {
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
             <input type="password" className="w-full pl-10 pr-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-400"
-                   placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                   placeholder="Contraseña" value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
           {error && <div className="text-red-600 text-sm">{error}</div>}
           <button disabled={loading}

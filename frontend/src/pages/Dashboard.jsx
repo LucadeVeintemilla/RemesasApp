@@ -77,7 +77,7 @@ function Dashboard() {
               <BarChart data={productsByCategory}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="name" tick={{ fill: '#64748b' }} />
-                <Tooltip />
+                <Tooltip formatter={(v) => [v, 'Productos']} />
                 <Bar dataKey="value" fill="#3a93ff" radius={[6,6,0,0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -91,7 +91,7 @@ function Dashboard() {
               <LineChart data={deliveriesByWeek}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="name" tick={{ fill: '#64748b' }} />
-                <Tooltip />
+                                    <Tooltip formatter={(v) => [v, 'Entregas']} />
                 <Line type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
